@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.riskgis.mapper.RiskGridMapper">
+
+    <select id="selectByPoint" resultType="com.riskgis.model.RiskGrid">
+        SELECT id, disaster_type, risk_score, risk_level, factors,
+               ST_AsText(geometry) as geometry, grid_size, created_at, updated_at
+        FROM risk_grid
+        WHERE ST_Contains(geometry, ST_SetSRID(ST_Point(#{lng}, #{lat}), 4326))
+        <if test="disasterTypes != null and disasterTypes.size() > 0">
+            AND disaster_type IN
+            <foreach collection="disasterTypes" item="type" open="(" separator="," close=")">
+                #{type}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="selectByArea" resultType="java.util.Map">
+        SELECT
+            risk_level,
+            risk_score,
+            ST_Area(ST_Intersection(geometry, ST_GeomFromText(#{wkt}, 4326))) as intersect_area
+        FROM risk_grid
+        WHERE disaster_type = #{disasterType}
+        AND ST_Intersects(geometry, ST_GeomFromText(#{wkt}, 4326))
+    </select>
+
+    <select id="selectByBounds" resultType="com.riskgis.model.RiskGrid">
+        SELECT id, disaster_type, risk_score, risk_level, factors,
+               ST_AsText(geometry) as geometry, grid_size, created_at, updated_at
+        FROM risk_grid
+        WHERE geometry &amp;&amp; ST_MakeEnvelope(#{minLng}, #{minLat}, #{maxLng}, #{maxLat}, 4326)
+        <if test="disasterTypes != null and disasterTypes.size() > 0">
+            AND disaster_type IN
+            <foreach collection="disasterTypes" item="type" open="(" separator="," close=")">
+                #{type}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

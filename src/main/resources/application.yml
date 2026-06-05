@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: risk-gis-backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/risk_gis
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-handlers-package: com.riskgis.config
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT 配置
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-for-development-only}
+  expiration: 3600000
+
+# 高德地图 API Key
+amap:
+  key: ${AMAP_KEY:YOUR_AMAP_KEY}
+
+# 接口盒子 API 配置
+apihz:
+  id: ${APIHZ_ID:10016722}
+  key: ${APIHZ_KEY:YOUR_APIHZ_KEY}
+
+# 万维易源台风 API 配置
+showapi:
+  app-key: ${SHOWAPI_APP_KEY:YOUR_SHOWAPI_APP_KEY}
+
+# 洪水预警 API 配置
+flood-warning:
+  api-url: https://hfc.mwr.cn/xxxx
+
+# 日志配置
+logging:
+  level:
+    com.riskgis: INFO
+    org.hibernate: WARN
+
+# SpringDoc 配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  # 启用 Javadoc 扫描，自动从 Javadoc 注释生成 API 文档
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
