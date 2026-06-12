@@ -2,8 +2,10 @@ package com.riskgis.controller;
 
 import com.riskgis.dto.request.InsurancePolicyQueryRequest;
 import com.riskgis.dto.request.InsurancePolicyRegionQueryRequest;
+import com.riskgis.dto.request.TyphoonPolicyQueryRequest;
 import com.riskgis.dto.response.ApiResponse;
 import com.riskgis.dto.response.InsurancePolicyGroupVO;
+import com.riskgis.dto.response.TyphoonPolicyStatsResponse;
 import com.riskgis.service.InsurancePolicyService;
 import com.riskgis.service.InsuranceService;
 import org.springframework.web.bind.annotation.*;
@@ -46,5 +48,10 @@ public class InsuranceController {
     @PostMapping("/policy/query-region")
     public ApiResponse<List<InsurancePolicyGroupVO>> queryPoliciesByRegion(@RequestBody InsurancePolicyRegionQueryRequest request) {
         return ApiResponse.success(insurancePolicyService.queryByRegion(request));
+    }
+
+    @PostMapping("/policy/query-typhoon")
+    public ApiResponse<TyphoonPolicyStatsResponse> queryPoliciesByTyphoon(@RequestBody TyphoonPolicyQueryRequest request) {
+        return ApiResponse.success(insurancePolicyService.queryByTyphoon(request));
     }
 }

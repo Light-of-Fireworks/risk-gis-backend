@@ -20,11 +20,6 @@ CREATE TABLE roles (
     description VARCHAR(200)
 );
 
-INSERT INTO roles (name, description) VALUES
-('ROLE_ADMIN', '管理员'),
-('ROLE_USER', '普通用户'),
-('ROLE_ANALYST', '分析师');
-
 -- 用户角色关联表
 CREATE TABLE user_roles (
     id BIGSERIAL PRIMARY KEY,
@@ -65,7 +60,6 @@ CREATE TABLE risk_assessment (
 CREATE INDEX idx_risk_assessment_geometry ON risk_assessment USING GIST(geometry);
 CREATE INDEX idx_risk_assessment_type ON risk_assessment(risk_type);
 CREATE INDEX idx_risk_assessment_level ON risk_assessment(risk_level);
-
 
 -- 预警信息表
 CREATE TABLE warning (
@@ -148,36 +142,18 @@ CREATE TABLE insurance_type (
 
 CREATE INDEX idx_insurance_type_category ON insurance_type(category_code);
 
--- 险类种子数据
-INSERT INTO insurance_category (category_code, category_name) VALUES
-('property', '财产险'),
-('vehicle', '车险'),
-('life', '人寿险'),
-('health', '健康险'),
-('liability', '责任险'),
-('agriculture', '农业险');
+-- 机构表
+CREATE TABLE IF NOT EXISTS organization (
+    org_code VARCHAR(20) PRIMARY KEY,
+    org_name VARCHAR(100) NOT NULL,
+    parent_code VARCHAR(20),
+    level INTEGER NOT NULL,  -- 1=总公司, 2=省级分公司, 3=市级支公司
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- 险种种子数据
-INSERT INTO insurance_type (type_code, type_name, category_code) VALUES
-('fire', '火灾险', 'property'),
-('flood', '洪水险', 'property'),
-('earthquake', '地震险', 'property'),
-('explosion', '爆炸险', 'property'),
-('compulsory', '交强险', 'vehicle'),
-('commercial', '商业车险', 'vehicle'),
-('third_party', '第三者责任险', 'vehicle'),
-('term', '定期寿险', 'life'),
-('whole', '终身寿险', 'life'),
-('annuity', '年金险', 'life'),
-('medical', '医疗险', 'health'),
-('critical', '重疾险', 'health'),
-('accident', '意外险', 'health'),
-('product', '产品责任险', 'liability'),
-('employer', '雇主责任险', 'liability'),
-('professional', '职业责任险', 'liability'),
-('crop', '种植险', 'agriculture'),
-('livestock', '养殖险', 'agriculture'),
-('forest', '森林险', 'agriculture');
+CREATE INDEX IF NOT EXISTS idx_organization_parent ON organization(parent_code);
+CREATE INDEX IF NOT EXISTS idx_organization_level ON organization(level);
 
 -- 承保表
 CREATE TABLE insurance_policy (
@@ -195,10 +171,12 @@ CREATE TABLE insurance_policy (
     status VARCHAR(20) DEFAULT 'active',
     address VARCHAR(200),
     location GEOMETRY(POINT, 4326) NOT NULL,
+    org_code VARCHAR(20) REFERENCES organization(org_code),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_insurance_policy_location ON insurance_policy USING GIST(location);
+CREATE INDEX IF NOT EXISTS idx_insurance_policy_org ON insurance_policy(org_code);
 CREATE INDEX idx_insurance_policy_category ON insurance_policy(category_code);
 CREATE INDEX idx_insurance_policy_type ON insurance_policy(type_code);
 CREATE INDEX idx_insurance_policy_status ON insurance_policy(status);
@@ -232,51 +210,47 @@ CREATE TABLE IF NOT EXISTS risk_factor_config (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 风险因子配置种子数据
-INSERT INTO risk_factor_config (disaster_type, factor_name, factor_weight, factor_type, description) VALUES
--- 水灾/洪水
-('FLOOD', '年降雨量', 0.2500, 'continuous', '年均降雨量(mm)'),
-('FLOOD', '地形高程', 0.2500, 'continuous', '平均海拔高度(m)'),
-('FLOOD', '河流距离', 0.2000, 'continuous', '距最近主要河流距离(km)'),
-('FLOOD', '排水能力', 0.1500, 'discrete', '排水系统完善程度'),
-('FLOOD', '历史洪灾频次', 0.1500, 'continuous', '近30年洪灾发生次数'),
-('FLOOD_RIVER', '年降雨量', 0.2500, 'continuous', '年均降雨量(mm)'),
-('FLOOD_RIVER', '地形高程', 0.2500, 'continuous', '平均海拔高度(m)'),
-('FLOOD_RIVER', '河流距离', 0.2000, 'continuous', '距最近主要河流距离(km)'),
-('FLOOD_RIVER', '排水能力', 0.1500, 'discrete', '排水系统完善程度'),
-('FLOOD_RIVER', '历史洪灾频次', 0.1500, 'continuous', '近30年洪灾发生次数'),
--- 暴雨
-('HEAVY_RAIN', '年暴雨日数', 0.3500, 'continuous', '年暴雨日数(日降雨量≥50mm)'),
-('HEAVY_RAIN', '地形坡度', 0.2500, 'continuous', '平均地形坡度(度)'),
-('HEAVY_RAIN', '排水能力', 0.2000, 'discrete', '排水系统完善程度'),
-('HEAVY_RAIN', '城市化率', 0.2000, 'continuous', '城市化率(%)'),
--- 雪灾
-('SNOWSTORM', '年降雪量', 0.3000, 'continuous', '年均降雪量(mm)'),
-('SNOWSTORM', '极端低温日数', 0.2500, 'continuous', '年极端低温日数(日最低温≤-10℃)'),
-('SNOWSTORM', '海拔', 0.2500, 'continuous', '平均海拔高度(m)'),
-('SNOWSTORM', '纬度', 0.2000, 'continuous', '中心纬度(度)'),
--- 冰雹
-('HAIL', '历史冰雹频次', 0.4000, 'continuous', '近30年冰雹发生次数'),
-('HAIL', '地形高度', 0.3000, 'continuous', '平均海拔高度(m)'),
-('HAIL', '季节因素', 0.3000, 'discrete', '冰雹季节风险系数'),
--- 雷电
-('LIGHTNING', '年雷暴日数', 0.4000, 'continuous', '年均雷暴日数'),
-('LIGHTNING', '地形高度', 0.3000, 'continuous', '平均海拔高度(m)'),
-('LIGHTNING', '纬度', 0.3000, 'continuous', '中心纬度(度)'),
--- 地震
-('EARTHQUAKE', '地震烈度区划', 0.4000, 'discrete', '中国地震烈度区划值'),
-('EARTHQUAKE', '距活动断层距离', 0.3500, 'continuous', '距最近活动断层距离(km)'),
-('EARTHQUAKE', '历史地震频次', 0.2500, 'continuous', '近50年4级以上地震次数'),
--- 台风
-('TYPHOON', '距海岸距离', 0.3500, 'continuous', '距海岸线距离(km)'),
-('TYPHOON', '历史台风频次', 0.3500, 'continuous', '近30年台风登陆次数'),
-('TYPHOON', '地形遮蔽', 0.3000, 'discrete', '地形对台风的遮蔽程度'),
--- 风暴潮
-('STORM_SURGE', '距海岸距离', 0.3500, 'continuous', '距海岸线距离(km)'),
-('STORM_SURGE', '海拔', 0.3000, 'continuous', '平均海拔高度(m)'),
-('STORM_SURGE', '历史风暴潮频次', 0.3500, 'continuous', '近30年风暴潮发生次数'),
--- 滑坡-泥石流
-('LANDSLIDE', '地形坡度', 0.3000, 'continuous', '平均地形坡度(度)'),
-('LANDSLIDE', '地质岩性', 0.2500, 'discrete', '地质岩性易滑程度'),
-('LANDSLIDE', '降雨量', 0.2500, 'continuous', '年均降雨量(mm)'),
-('LANDSLIDE', '植被覆盖', 0.2000, 'continuous', '植被覆盖率(%)');
+-- 台风主表
+CREATE TABLE IF NOT EXISTS typhoon_record (
+    id BIGSERIAL PRIMARY KEY,
+    tfid VARCHAR(32) NOT NULL UNIQUE,
+    name VARCHAR(64),
+    en_name VARCHAR(64),
+    strong VARCHAR(32),
+    power VARCHAR(16),
+    speed VARCHAR(16),
+    pressure VARCHAR(16),
+    lat DECIMAL(10, 4),
+    lng DECIMAL(10, 4),
+    move_direction VARCHAR(16),
+    move_speed VARCHAR(16),
+    radius7 VARCHAR(16),
+    radius10 VARCHAR(16),
+    is_active BOOLEAN DEFAULT TRUE,
+    data_time TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_typhoon_record_tfid ON typhoon_record(tfid);
+CREATE INDEX IF NOT EXISTS idx_typhoon_record_data_time ON typhoon_record(data_time DESC);
+
+-- 台风轨迹点表
+CREATE TABLE IF NOT EXISTS typhoon_point (
+    id BIGSERIAL PRIMARY KEY,
+    tfid VARCHAR(32) NOT NULL,
+    point_time TIMESTAMP,
+    lat VARCHAR(16),
+    lng VARCHAR(16),
+    strong VARCHAR(32),
+    power VARCHAR(16),
+    speed VARCHAR(16),
+    pressure VARCHAR(16),
+    move_direction VARCHAR(16),
+    move_speed VARCHAR(16),
+    radius7 VARCHAR(16),
+    radius10 VARCHAR(16),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_typhoon_point_tfid ON typhoon_point(tfid);
+CREATE INDEX IF NOT EXISTS idx_typhoon_point_time ON typhoon_point(point_time);

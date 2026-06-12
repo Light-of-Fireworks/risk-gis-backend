@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-风险地理信息系统（Risk GIS）后端服务，基于 Spring Boot 3.2 + MyBatis-Plus + PostgreSQL + PostGIS 构建，提供 GIS 空间分析、风险评估、灾害预警、承保理赔等核心业务功能的 API 接口。
+风险地理信息系统（Risk GIS）后端服务，基于 Spring Boot 3.2 + MyBatis-Plus + PostgreSQL + PostGIS 构建，提供 GIS 空间分析、风险评估、灾害预警等核心业务功能的 API 接口。
 
 ## 技术栈
 

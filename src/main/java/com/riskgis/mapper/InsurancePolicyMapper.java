@@ -23,4 +23,13 @@ public interface InsurancePolicyMapper extends BaseMapper<InsurancePolicy> {
         @Param("categoryCodes") List<String> categoryCodes,
         @Param("typeCodes") List<String> typeCodes
     );
+
+    List<InsurancePolicy> selectByTyphoonBuffer(
+        @Param("wkt") String wkt,
+        @Param("radiusMeters") double radiusMeters,
+        @Param("endDate") String endDate,
+        @Param("orgCodes") List<String> orgCodes,
+        @Param("categoryCodes") List<String> categoryCodes,
+        @Param("typeCodes") List<String> typeCodes
+    );
 }

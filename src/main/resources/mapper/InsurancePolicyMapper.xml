@@ -48,4 +48,48 @@
         AND status = 'active'
     </select>
 
+    <select id="selectByTyphoonBuffer" resultType="com.riskgis.model.InsurancePolicy">
+        SELECT id, policy_no, policy_holder, insured_name, category_code, type_code,
+               target_no, coverage_amount, premium, start_date, end_date, status, address,
+               ST_AsText(location) as location, created_at, org_code
+        FROM insurance_policy
+        WHERE ST_DWithin(
+            location::geography,
+            ST_Buffer(
+                ST_GeomFromText(#{wkt}, 4326)::geography,
+                #{radiusMeters}
+            )::geography,
+            0
+        )
+        OR ST_Within(
+            location,
+            ST_Buffer(
+                ST_GeomFromText(#{wkt}, 4326),
+                #{radiusMeters} / 111320.0
+            )
+        )
+        <if test="endDate != null and endDate != ''">
+            AND end_date &lt;= #{endDate}::date
+        </if>
+        <if test="orgCodes != null and orgCodes.size() > 0">
+            AND org_code IN
+            <foreach collection="orgCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="categoryCodes != null and categoryCodes.size() > 0">
+            AND category_code IN
+            <foreach collection="categoryCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        <if test="typeCodes != null and typeCodes.size() > 0">
+            AND type_code IN
+            <foreach collection="typeCodes" item="code" open="(" separator="," close=")">
+                #{code}
+            </foreach>
+        </if>
+        AND status = 'active'
+    </select>
+
 </mapper>
