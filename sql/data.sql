@@ -233,3 +233,71 @@ VALUES
 INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
 VALUES
 ('P20240016', '郑十', '郑十', 'health', 'medical', 1, 1000000.00, 800.00, '2024-01-01', '2025-01-01', 'active', '深圳市深茂商业中心A栋', ST_SetSRID(ST_MakePoint(114.043103, 22.541129), 4326), '4403');
+
+-- 台风"米克拉"(202607)路径沿线保单测试数据
+-- 用于验证台风保单查询功能
+-- 路径经过：马里亚纳群岛 -> 菲律宾以东 -> 琉球群岛 -> 冲绳附近
+
+-- 关岛附近（台风起点区域）(138.80, 14.00)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260001', '关岛度假酒店集团', '关岛海滨度假村', 'property', 'flood', 1, 8000000.00, 45000.00, '2026-01-01', '2027-01-01', 'active', '关岛塔穆宁区海滨大道100号', ST_SetSRID(ST_MakePoint(138.75, 14.05), 4326), '3501'),
+('TYP20260002', '关岛度假酒店集团', '关岛海滨度假村B区', 'property', 'fire', 1, 5000000.00, 28000.00, '2026-01-01', '2027-01-01', 'active', '关岛塔穆宁区海滨大道102号', ST_SetSRID(ST_MakePoint(138.76, 14.04), 4326), '3501'),
+('TYP20260003', '太平洋航运公司', '货轮太平洋之星', 'vehicle', 'commercial', 1, 15000000.00, 85000.00, '2026-01-01', '2027-01-01', 'active', '关岛阿加尼亚港口', ST_SetSRID(ST_MakePoint(138.72, 14.08), 4326), '3501');
+
+-- 塞班岛附近（台风路径经过）(136.00, 14.80)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260004', '塞班岛旅游公司', '塞班岛度假中心', 'property', 'flood', 1, 6000000.00, 35000.00, '2026-02-01', '2027-02-01', 'active', '塞班岛加拉班市区', ST_SetSRID(ST_MakePoint(135.95, 14.85), 4326), '3502'),
+('TYP20260005', '塞班岛旅游公司', '塞班岛水上乐园', 'property', 'fire', 1, 4000000.00, 22000.00, '2026-02-01', '2027-02-01', 'active', '塞班岛微海滩', ST_SetSRID(ST_MakePoint(135.98, 14.82), 4326), '3502');
+
+-- 帛琉附近（台风路径经过）(134.00, 14.90)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260006', '帛琉海洋保护协会', '帛琉海洋研究中心', 'property', 'flood', 1, 3000000.00, 18000.00, '2026-03-01', '2027-03-01', 'active', '帛琉科罗尔州', ST_SetSRID(ST_MakePoint(134.05, 14.95), 4326), '3501'),
+('TYP20260007', '帛琉渔业公司', '帛琉远洋渔船队', 'vehicle', 'commercial', 1, 12000000.00, 68000.00, '2026-03-01', '2027-03-01', 'active', '帛琉马拉卡尔港', ST_SetSRID(ST_MakePoint(134.02, 14.88), 4326), '3501');
+
+-- 冲绳附近（台风增强区域）(131.00, 16.30)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260008', '冲绳县渔业协同组合', '冲绳近海养殖渔场', 'agriculture', 'livestock', 1, 2000000.00, 12000.00, '2026-01-15', '2027-01-15', 'active', '冲绳县那霸市泊港', ST_SetSRID(ST_MakePoint(131.05, 16.35), 4326), '3501'),
+('TYP20260009', '冲绳观光酒店', '冲绳海滨酒店', 'property', 'flood', 1, 9000000.00, 52000.00, '2026-01-15', '2027-01-15', 'active', '冲绳县那霸市国际通', ST_SetSRID(ST_MakePoint(131.02, 16.28), 4326), '3501');
+
+-- 琉球群岛北部（超强台风区域）(127.60, 17.60)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260010', '琉球群岛海洋牧场', '近海养殖基地', 'agriculture', 'livestock', 1, 1500000.00, 8500.00, '2026-02-01', '2027-02-01', 'active', '冲绳县久米岛', ST_SetSRID(ST_MakePoint(127.55, 17.65), 4326), '3502'),
+('TYP20260011', '琉球海运集团', '集装箱货轮', 'vehicle', 'commercial', 1, 25000000.00, 145000.00, '2026-02-01', '2027-02-01', 'active', '冲绳县中城湾港', ST_SetSRID(ST_MakePoint(127.65, 17.55), 4326), '3502');
+
+-- 冲绳本岛附近（台风经过区域）(125.40, 18.50)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260012', '冲绳电力公司', '冲绳发电厂', 'property', 'fire', 1, 50000000.00, 280000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县北谷町', ST_SetSRID(ST_MakePoint(125.45, 18.55), 4326), '3501'),
+('TYP20260013', '冲绳电力公司', '输电线路设施', 'property', 'explosion', 1, 30000000.00, 170000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县宜野湾市', ST_SetSRID(ST_MakePoint(125.38, 18.48), 4326), '3501'),
+('TYP20260014', '冲绳县农业协同组合', '菠萝种植园', 'agriculture', 'crop', 1, 8000000.00, 45000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县读谷村', ST_SetSRID(ST_MakePoint(125.42, 18.52), 4326), '3501');
+
+-- 那霸附近（台风接近区域）(124.50, 21.40)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260015', '那霸港口公司', '那霸国际港口', 'property', 'flood', 1, 80000000.00, 450000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县那霸市', ST_SetSRID(ST_MakePoint(124.55, 21.45), 4326), '3501'),
+('TYP20260016', '那霸港口公司', '港口起重机设备', 'property', 'fire', 1, 20000000.00, 115000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县那霸市泊港', ST_SetSRID(ST_MakePoint(124.52, 21.42), 4326), '3501'),
+('TYP20260017', '冲绳海上保安厅', '巡视船', 'vehicle', 'commercial', 1, 35000000.00, 200000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县那霸市', ST_SetSRID(ST_MakePoint(124.48, 21.38), 4326), '3501');
+
+-- 宫古岛附近（台风路径附近）(125.90, 24.40)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260018', '宫古岛观光协会', '宫古岛度假酒店', 'property', 'flood', 1, 7000000.00, 40000.00, '2026-03-01', '2027-03-01', 'active', '冲绳县宫古岛市', ST_SetSRID(ST_MakePoint(125.85, 24.45), 4326), '3502'),
+('TYP20260019', '宫古岛甘蔗农场', '甘蔗种植基地', 'agriculture', 'crop', 1, 4000000.00, 22000.00, '2026-03-01', '2027-03-01', 'active', '冲绳县宫古岛市', ST_SetSRID(ST_MakePoint(125.92, 24.42), 4326), '3502'),
+('TYP20260020', '宫古岛渔业公司', '近海渔船', 'vehicle', 'commercial', 1, 6000000.00, 34000.00, '2026-03-01', '2027-03-01', 'active', '冲绳县宫古岛市平良港', ST_SetSRID(ST_MakePoint(125.88, 24.38), 4326), '3502');
+
+-- 额外保单：路径中段（用于测试缓冲区覆盖）(130.00, 17.00)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260021', '东海航运公司', '远洋货轮东海号', 'vehicle', 'commercial', 1, 18000000.00, 102000.00, '2026-02-15', '2027-02-15', 'active', '冲绳县系满市', ST_SetSRID(ST_MakePoint(130.05, 17.05), 4326), '3501'),
+('TYP20260022', '东海航运公司', '近海运输船', 'vehicle', 'compulsory', 1, 5000000.00, 28000.00, '2026-02-15', '2027-02-15', 'active', '冲绳县糸満港', ST_SetSRID(ST_MakePoint(130.02, 16.98), 4326), '3501');
+
+-- 额外保单：路径后段（用于测试多点覆盖）(126.50, 19.50)附近
+INSERT INTO insurance_policy (policy_no, policy_holder, insured_name, category_code, type_code, target_no, coverage_amount, premium, start_date, end_date, status, address, location, org_code)
+VALUES
+('TYP20260023', '先岛群岛海洋牧场', '金枪鱼养殖基地', 'agriculture', 'livestock', 1, 12000000.00, 68000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县石垣市', ST_SetSRID(ST_MakePoint(126.55, 19.55), 4326), '3502'),
+('TYP20260024', '先岛群岛海洋牧场', '海产品加工厂', 'property', 'fire', 1, 9000000.00, 51000.00, '2026-01-01', '2027-01-01', 'active', '冲绳县石垣市', ST_SetSRID(ST_MakePoint(126.52, 19.48), 4326), '3502');
