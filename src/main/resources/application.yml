@@ -37,7 +37,7 @@ amap:
 
 # 接口盒子 API 配置
 apihz:
-  id: ${APIHZ_ID:10016722}
+  id: ${APIHZ_ID:YOUR_ID}
   key: ${APIHZ_KEY:YOUR_APIHZ_KEY}
 
 # 万维易源台风 API 配置
