@@ -31,22 +31,29 @@ jwt:
   secret: ${JWT_SECRET:default-secret-key-for-development-only}
   expiration: 3600000
 
-# 高德地图 API Key
+# 高德地图 API
 amap:
-  key: ${AMAP_KEY:YOUR_AMAP_KEY}
+  base-url: https://restapi.amap.com
+  key: ${AMAP_KEY:KEY}
 
 # 接口盒子 API 配置
 apihz:
+  base-url: https://cn.apihz.cn
   id: ${APIHZ_ID:YOUR_ID}
   key: ${APIHZ_KEY:YOUR_APIHZ_KEY}
 
 # 万维易源台风 API 配置
 showapi:
-  app-key: ${SHOWAPI_APP_KEY:YOUR_SHOWAPI_APP_KEY}
+  base-url: https://route.showapi.com
+  app-key: ${SHOWAPI_APP_KEY:KEY}
 
 # 洪水预警 API 配置
 flood-warning:
-  api-url: https://hfc.mwr.cn/xxxx
+  base-url: https://hfc.mwr.cn
+
+# OpenTopoData 高程 API
+opentopodata:
+  base-url: https://api.opentopodata.org
 
 # 日志配置
 logging:

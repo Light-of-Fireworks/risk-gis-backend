@@ -1,6 +1,8 @@
 package com.riskgis.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.riskgis.client.ApihzClient;
+import com.riskgis.dto.earthquake.EarthquakeResponse;
 import com.riskgis.mapper.EarthquakeRecordMapper;
 import com.riskgis.model.EarthquakeRecord;
 import com.riskgis.service.EarthquakeService;
@@ -8,14 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class EarthquakeServiceImpl implements EarthquakeService {
@@ -24,6 +23,7 @@ public class EarthquakeServiceImpl implements EarthquakeService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final EarthquakeRecordMapper earthquakeRecordMapper;
+    private final ApihzClient apihzClient;
 
     @Value("${apihz.id}")
     private String apihzId;
@@ -31,38 +31,36 @@ public class EarthquakeServiceImpl implements EarthquakeService {
     @Value("${apihz.key}")
     private String apihzKey;
 
-    public EarthquakeServiceImpl(EarthquakeRecordMapper earthquakeRecordMapper) {
+    public EarthquakeServiceImpl(EarthquakeRecordMapper earthquakeRecordMapper, ApihzClient apihzClient) {
         this.earthquakeRecordMapper = earthquakeRecordMapper;
+        this.apihzClient = apihzClient;
     }
 
     @Override
     public void syncEarthquakeData() {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://cn.apihz.cn/api/tianqi/dizhen.php?id=" + apihzId + "&key=" + apihzKey;
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            EarthquakeResponse response = apihzClient.getEarthquake(apihzId, apihzKey);
 
-            if (response == null || !response.containsKey("data")) {
+            if (response == null || response.getData() == null) {
                 return;
             }
 
-            List<?> dataList = (List<?>) response.get("data");
-            if (dataList == null || dataList.isEmpty()) {
+            List<EarthquakeResponse.EarthquakeItem> dataList = response.getData();
+            if (dataList.isEmpty()) {
                 return;
             }
 
             int inserted = 0;
-            for (Object item : dataList) {
-                Map<String, Object> data = (Map<String, Object>) item;
+            for (EarthquakeResponse.EarthquakeItem item : dataList) {
                 try {
                     EarthquakeRecord record = new EarthquakeRecord();
-                    record.setOccurTime(LocalDateTime.parse((String) data.get("addtime"), FORMATTER));
-                    record.setMagnitude(new BigDecimal((String) data.get("leve")));
-                    record.setLatitude(new BigDecimal((String) data.get("weidu")));
-                    record.setLongitude(new BigDecimal((String) data.get("jingdu")));
-                    record.setDepth(new BigDecimal((String) data.get("shendu")));
-                    record.setLocation((String) data.get("weizhi"));
-                    record.setReportTime(LocalDateTime.parse((String) data.get("hctime"), FORMATTER));
+                    record.setOccurTime(LocalDateTime.parse(item.getAddtime(), FORMATTER));
+                    record.setMagnitude(new BigDecimal(item.getLeve()));
+                    record.setLatitude(new BigDecimal(item.getWeidu()));
+                    record.setLongitude(new BigDecimal(item.getJingdu()));
+                    record.setDepth(new BigDecimal(item.getShendu()));
+                    record.setLocation(item.getWeizhi());
+                    record.setReportTime(LocalDateTime.parse(item.getHctime(), FORMATTER));
 
                     // 使用 MyBatis-Plus 的 save，利用数据库 UNIQUE 约束避免重复
                     // 先查询是否已存在

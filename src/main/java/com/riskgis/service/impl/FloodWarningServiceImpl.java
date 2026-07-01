@@ -1,21 +1,19 @@
 package com.riskgis.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.riskgis.client.FloodWarningClient;
+import com.riskgis.dto.flood.FloodWarningResponse;
 import com.riskgis.mapper.FloodWarningMapper;
 import com.riskgis.model.FloodWarning;
 import com.riskgis.service.FloodWarningService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class FloodWarningServiceImpl implements FloodWarningService {
@@ -24,34 +22,31 @@ public class FloodWarningServiceImpl implements FloodWarningService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final FloodWarningMapper floodWarningMapper;
+    private final FloodWarningClient floodWarningClient;
 
-    @Value("${flood-warning.api-url}")
-    private String apiUrl;
-
-    public FloodWarningServiceImpl(FloodWarningMapper floodWarningMapper) {
+    public FloodWarningServiceImpl(FloodWarningMapper floodWarningMapper, FloodWarningClient floodWarningClient) {
         this.floodWarningMapper = floodWarningMapper;
+        this.floodWarningClient = floodWarningClient;
     }
 
     @Override
     public void syncFloodWarningData() {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            Map<String, Object> response = restTemplate.getForObject(apiUrl, Map.class);
+            FloodWarningResponse response = floodWarningClient.getWarnings();
 
-            if (response == null || !response.containsKey("Data")) {
+            if (response == null || response.getData() == null) {
                 return;
             }
 
-            List<?> dataList = (List<?>) response.get("Data");
-            if (dataList == null || dataList.isEmpty()) {
+            List<FloodWarningResponse.FloodWarningItem> dataList = response.getData();
+            if (dataList.isEmpty()) {
                 return;
             }
 
             int inserted = 0;
-            for (Object item : dataList) {
-                Map<String, Object> data = (Map<String, Object>) item;
+            for (FloodWarningResponse.FloodWarningItem item : dataList) {
                 try {
-                    Long wrInfoId = Long.valueOf(data.get("WRInfoID").toString());
+                    Long wrInfoId = Long.valueOf(item.getWrInfoId());
 
                     LambdaQueryWrapper<FloodWarning> wrapper = new LambdaQueryWrapper<>();
                     wrapper.eq(FloodWarning::getWrInfoId, wrInfoId);
@@ -62,19 +57,19 @@ public class FloodWarningServiceImpl implements FloodWarningService {
 
                     FloodWarning warning = new FloodWarning();
                     warning.setWrInfoId(wrInfoId);
-                    warning.setWrIcon((String) data.get("WRIcon"));
-                    warning.setWrTitle((String) data.get("WRTitle"));
-                    warning.setWrDetail((String) data.get("WRDetail"));
-                    warning.setPublishTime(LocalDateTime.parse((String) data.get("IYMDH"), FORMATTER));
-                    warning.setExpireTime(LocalDateTime.parse((String) data.get("EYMDH"), FORMATTER));
-                    warning.setLongitude(new BigDecimal((String) data.get("LGTD")));
-                    warning.setLatitude(new BigDecimal((String) data.get("LTTD")));
-                    warning.setWrType((String) data.get("WRType"));
-                    warning.setWrLevel((String) data.get("WRLevel"));
-                    warning.setInfluenceArea((String) data.get("InfluadArea"));
-                    warning.setInfluenceAreaCd((String) data.get("InfluadAreaCd"));
-                    warning.setUnitName((String) data.get("UnitName"));
-                    warning.setDetailUrl((String) data.get("Url"));
+                    warning.setWrIcon(item.getWrIcon());
+                    warning.setWrTitle(item.getWrTitle());
+                    warning.setWrDetail(item.getWrDetail());
+                    warning.setPublishTime(LocalDateTime.parse(item.getPublishTime(), FORMATTER));
+                    warning.setExpireTime(LocalDateTime.parse(item.getExpireTime(), FORMATTER));
+                    warning.setLongitude(new BigDecimal(item.getLongitude()));
+                    warning.setLatitude(new BigDecimal(item.getLatitude()));
+                    warning.setWrType(item.getWrType());
+                    warning.setWrLevel(item.getWrLevel());
+                    warning.setInfluenceArea(item.getInfluenceArea());
+                    warning.setInfluenceAreaCd(item.getInfluenceAreaCd());
+                    warning.setUnitName(item.getUnitName());
+                    warning.setDetailUrl(item.getUrl());
 
                     floodWarningMapper.insert(warning);
                     inserted++;

@@ -1,5 +1,11 @@
 package com.riskgis.controller;
 
+import com.riskgis.client.AmapClient;
+import com.riskgis.client.OpenTopoDataClient;
+import com.riskgis.dto.amap.AmapDistrictResponse;
+import com.riskgis.dto.amap.AmapInputTipsResponse;
+import com.riskgis.dto.amap.AmapRegeoResponse;
+import com.riskgis.dto.opentopodata.OpenTopoDataResponse;
 import com.riskgis.dto.request.SpatialQueryRequest;
 import com.riskgis.dto.response.ApiResponse;
 import com.riskgis.model.EarthquakeRecord;
@@ -13,7 +19,6 @@ import com.riskgis.service.GisService;
 import com.riskgis.service.TyphoonService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,21 +40,19 @@ public class GisController {
     private final EarthquakeService earthquakeService;
     private final FloodWarningService floodWarningService;
     private final TyphoonService typhoonService;
-
-    @Value("${apihz.id}")
-    private String apihzId;
-
-    @Value("${apihz.key}")
-    private String apihzKey;
+    private final AmapClient amapClient;
+    private final OpenTopoDataClient openTopoDataClient;
 
     @Value("${amap.key}")
     private String amapKey;
 
-    public GisController(GisService gisService, EarthquakeService earthquakeService, FloodWarningService floodWarningService, TyphoonService typhoonService) {
+    public GisController(GisService gisService, EarthquakeService earthquakeService, FloodWarningService floodWarningService, TyphoonService typhoonService, AmapClient amapClient, OpenTopoDataClient openTopoDataClient) {
         this.gisService = gisService;
         this.earthquakeService = earthquakeService;
         this.floodWarningService = floodWarningService;
         this.typhoonService = typhoonService;
+        this.amapClient = amapClient;
+        this.openTopoDataClient = openTopoDataClient;
     }
 
     /**
@@ -164,17 +167,11 @@ public class GisController {
     @GetMapping("/elevation")
     public ApiResponse<Map<String, Object>> getElevation(@RequestParam double lng, @RequestParam double lat) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://api.opentopodata.org/v1/srtm90m?locations=" + lat + "," + lng;
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            OpenTopoDataResponse response = openTopoDataClient.getElevation(lat + "," + lng);
             Map<String, Object> result = new HashMap<>();
-            if (response != null && response.containsKey("results")) {
-                java.util.List<?> results = (java.util.List<?>) response.get("results");
-                if (!results.isEmpty()) {
-                    Map<String, Object> first = (Map<String, Object>) results.get(0);
-                    result.put("elevation", first.get("elevation"));
-                    return ApiResponse.success(result);
-                }
+            if (response != null && response.getResults() != null && !response.getResults().isEmpty()) {
+                result.put("elevation", response.getResults().get(0).getElevation());
+                return ApiResponse.success(result);
             }
             result.put("elevation", null);
             return ApiResponse.success(result);
@@ -304,11 +301,8 @@ public class GisController {
             @RequestParam String keywords,
             @RequestParam(required = false, defaultValue = "") String city) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://restapi.amap.com/v3/assistant/inputtips?key=" + amapKey
-                    + "&keywords=" + keywords + "&city=" + city + "&datatype=all&output=JSON";
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            return ApiResponse.success(response != null ? response.get("tips") : null);
+            AmapInputTipsResponse response = amapClient.inputTips(amapKey, keywords, city, "all");
+            return ApiResponse.success(response != null ? response.getTips() : null);
         } catch (Exception e) {
             return ApiResponse.error(500, "输入提示查询失败: " + e.getMessage());
         }
@@ -320,11 +314,8 @@ public class GisController {
     @GetMapping("/amap/reverse-geocode")
     public ApiResponse<Object> amapReverseGeocode(@RequestParam String lnglat) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://restapi.amap.com/v3/geocode/regeo?key=" + amapKey
-                    + "&location=" + lnglat + "&output=JSON";
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            return ApiResponse.success(response != null ? response.get("regeocode") : null);
+            AmapRegeoResponse response = amapClient.reverseGeocode(amapKey, lnglat);
+            return ApiResponse.success(response != null ? response.getRegeocode() : null);
         } catch (Exception e) {
             return ApiResponse.error(500, "逆地理编码失败: " + e.getMessage());
         }
@@ -339,12 +330,8 @@ public class GisController {
             @RequestParam(required = false, defaultValue = "1") int subdistrict,
             @RequestParam(required = false, defaultValue = "base") String extensions) {
         try {
-            RestTemplate restTemplate = new RestTemplate();
-            String url = "https://restapi.amap.com/v3/config/district?key=" + amapKey
-                    + "&keywords=" + adcode + "&subdistrict=" + subdistrict
-                    + "&extensions=" + extensions + "&output=JSON";
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            return ApiResponse.success(response != null ? response.get("districts") : null);
+            AmapDistrictResponse response = amapClient.district(amapKey, adcode, subdistrict, extensions);
+            return ApiResponse.success(response != null ? response.getDistricts() : null);
         } catch (Exception e) {
             return ApiResponse.error(500, "行政区划查询失败: " + e.getMessage());
         }
