@@ -45,6 +45,7 @@ public class InsurancePolicyServiceImpl implements InsurancePolicyService {
             request.getLng(),
             request.getLat(),
             radiusMeters,
+            request.getEndDate(),
             request.getCategoryCodes(),
             request.getTypeCodes()
         );
@@ -190,7 +191,7 @@ public class InsurancePolicyServiceImpl implements InsurancePolicyService {
             );
 
             // Calculate stats for this typhoon
-            int targetCount = policies.stream().mapToInt(p -> p.getTargetNo() != null ? p.getTargetNo() : 1).sum();
+            int targetCount = policies.size();
             BigDecimal coverageAmount = policies.stream()
                     .map(p -> p.getCoverageAmount() != null ? p.getCoverageAmount() : BigDecimal.ZERO)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);

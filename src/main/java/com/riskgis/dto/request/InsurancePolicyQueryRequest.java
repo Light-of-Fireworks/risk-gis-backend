@@ -13,6 +13,7 @@ public class InsurancePolicyQueryRequest {
     private Double lng;
     private Double lat;
     private Integer radius;
+    private String endDate;              // optional, yyyy-MM-dd
     private List<String> categoryCodes;
     private List<String> typeCodes;
 }

@@ -24,6 +24,9 @@
                 #{code}
             </foreach>
         </if>
+        <if test="endDate != null and endDate != ''">
+            AND end_date &lt;= #{endDate}::date
+        </if>
         AND status = 'active'
     </select>
 

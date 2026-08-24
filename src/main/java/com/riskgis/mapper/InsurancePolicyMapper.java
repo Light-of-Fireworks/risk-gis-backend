@@ -14,6 +14,7 @@ public interface InsurancePolicyMapper extends BaseMapper<InsurancePolicy> {
         @Param("lng") double lng,
         @Param("lat") double lat,
         @Param("radiusMeters") double radiusMeters,
+        @Param("endDate") String endDate,
         @Param("categoryCodes") List<String> categoryCodes,
         @Param("typeCodes") List<String> typeCodes
     );
